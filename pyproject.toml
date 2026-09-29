@@ -1,0 +1,19 @@
+[project]
+name = "mini-coding-agent"
+version = "0.1.0"
+description = "A lightweight, modular autonomous coding agent architecture inspired by Claude Code with two-level skill injection and subagent delegation."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.40.0",
+    "litellm>=1.50.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+mini-coding-agent = "MiniCodingAgent.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
