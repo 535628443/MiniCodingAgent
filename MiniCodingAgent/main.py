@@ -58,9 +58,15 @@ def main():
         history.append({"role": "user", "content": query})
         agent_loop(history)
 
-        for block in history[-1]["content"]:
-            if getattr(block, "type", None) == "text":
-                print(block.text)
+        content = history[-1].get("content", "") if isinstance(history[-1], dict) else getattr(history[-1], "content", "")
+        if isinstance(content, str):
+            print(content)
+        elif isinstance(content, list):
+            for block in content:
+                if getattr(block, "type", None) == "text":
+                    print(getattr(block, "text", ""))
+                elif isinstance(block, dict) and block.get("type") == "text":
+                    print(block.get("text", ""))
         print()
 
 

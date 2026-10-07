@@ -1,10 +1,35 @@
 """
-任务管理工具：todo_write
+任务管理工具: todo_write
 """
 import ast
 import json
 from ..state import state
 
+
+def run_todo_write(todos: list) -> str:
+    """保存并彩色打印任务状态看板。"""
+    normalized, error = _normalize_todos(todos)
+    if error:
+        return error
+
+    state.current_todos = normalized
+
+    lines = ["\n\033[33m## Current Tasks\033[0m"]
+    icon_map = {
+        "pending": " ",
+        "in_progress": "\033[36m▸\033[0m",
+        "completed": "\033[32m✓\033[0m",
+    }
+
+    for t in state.current_todos:
+        icon = icon_map.get(t["status"], " ")
+        lines.append(f"  [{icon}] {t['content']}")
+
+    print("\n".join(lines))
+    return f"Updated {len(state.current_todos)} tasks"
+
+
+# ====================== Helper Methods ============================
 
 def _normalize_todos(todos):
     """参数归一化与校验（保证兼容模型输出的各种结构）。"""
@@ -30,25 +55,3 @@ def _normalize_todos(todos):
 
     return todos, None
 
-
-def run_todo_write(todos: list) -> str:
-    """保存并彩色打印任务状态看板。"""
-    normalized, error = _normalize_todos(todos)
-    if error:
-        return error
-
-    state.current_todos = normalized
-
-    lines = ["\n\033[33m## Current Tasks\033[0m"]
-    icon_map = {
-        "pending": " ",
-        "in_progress": "\033[36m▸\033[0m",
-        "completed": "\033[32m✓\033[0m",
-    }
-
-    for t in state.current_todos:
-        icon = icon_map.get(t["status"], " ")
-        lines.append(f"  [{icon}] {t['content']}")
-
-    print("\n".join(lines))
-    return f"Updated {len(state.current_todos)} tasks"

@@ -41,3 +41,7 @@ env/
 ._*
 .Spotlight-V100
 .Trashes
+
+# Agent runtime transcripts & temporary data
+.transcripts/
+

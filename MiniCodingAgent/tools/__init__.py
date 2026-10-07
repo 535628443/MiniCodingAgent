@@ -11,78 +11,110 @@ from .subagent import spawn_subagent
 TOOLS = [
     {
         "name": "bash",
-        "description": "Run a shell command.",
+        "description": "Run non-interactive shell commands (e.g. grep, find, git, pytest, ls, python) in the workspace directory and capture the output.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "command": {"type": "string"}
+                "command": {
+                    "type": "string",
+                    "description": "The shell command line string to execute in the workspace.",
+                }
             },
             "required": ["command"],
         },
     },
     {
         "name": "read_file",
-        "description": "Read file contents.",
+        "description": "Read file contents safely from the workspace. Supports optional line limit to avoid context overflow.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "path": {"type": "string"},
-                "limit": {"type": "integer"},
+                "path": {
+                    "type": "string",
+                    "description": "Relative path to the file in the workspace.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Optional maximum number of lines to read from the file.",
+                },
             },
             "required": ["path"],
         },
     },
     {
         "name": "write_file",
-        "description": "Write content to a file.",
+        "description": "Write or overwrite content to a file. Automatically creates any missing parent directories.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"},
+                "path": {
+                    "type": "string",
+                    "description": "Relative path to the destination file.",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "The full text content to write to the file.",
+                },
             },
             "required": ["path", "content"],
         },
     },
     {
         "name": "edit_file",
-        "description": "Replace exact text in a file once.",
+        "description": "Replace an exact substring ('old_text') with 'new_text' in a file once. 'old_text' must match the file content exactly.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "path": {"type": "string"},
-                "old_text": {"type": "string"},
-                "new_text": {"type": "string"},
+                "path": {
+                    "type": "string",
+                    "description": "Relative path to the file to edit.",
+                },
+                "old_text": {
+                    "type": "string",
+                    "description": "The exact substring to be replaced (must match uniquely in the file).",
+                },
+                "new_text": {
+                    "type": "string",
+                    "description": "The replacement substring.",
+                },
             },
             "required": ["path", "old_text", "new_text"],
         },
     },
     {
         "name": "glob",
-        "description": "Find files matching a glob pattern.",
+        "description": "Find file paths in the workspace matching a glob pattern (e.g., '**/*.py', 'MiniCodingAgent/*.py', 'tests/*').",
         "input_schema": {
             "type": "object",
             "properties": {
-                "pattern": {"type": "string"}
+                "pattern": {
+                    "type": "string",
+                    "description": "Glob pattern relative to workspace root.",
+                }
             },
             "required": ["pattern"],
         },
     },
     {
         "name": "todo_write",
-        "description": "Create and manage a task list for your current coding session.",
+        "description": "Create and manage the structured task checklist for your coding session. Keeps progress tracked across multiple steps.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "todos": {
                     "type": "array",
+                    "description": "The complete list of todo items.",
                     "items": {
                         "type": "object",
                         "properties": {
-                            "content": {"type": "string"},
+                            "content": {
+                                "type": "string",
+                                "description": "Clear description of the task item.",
+                            },
                             "status": {
                                 "type": "string",
                                 "enum": ["pending", "in_progress", "completed"],
+                                "description": "Current status of the task item.",
                             },
                         },
                         "required": ["content", "status"],
@@ -94,25 +126,38 @@ TOOLS = [
     },
     {
         "name": "task",
-        "description": "Launch a subagent to handle a complex subtask. Returns only the final conclusion.",
+        "description": "Launch an autonomous subagent with a fresh, isolated context to perform a complex or exploratory subtask, returning only a concise summary.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "description": {"type": "string"}
+                "description": {
+                    "type": "string",
+                    "description": "Detailed instructions and context for the subagent to execute.",
+                }
             },
             "required": ["description"],
         },
     },
-    # s07 核心工具：技能概要已在 SYSTEM 中呈现，调用此工具按需拉取完整知识指导
     {
         "name": "load_skill",
-        "description": "Load the full content of a skill by name.",
+        "description": "Load the full standard operating procedure (SOP) and detailed domain guidelines for a specific skill from the catalog.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "name": {"type": "string"}
+                "name": {
+                    "type": "string",
+                    "description": "The name of the skill to load (e.g. 'agent-builder', 'code-review', 'mcp-builder', 'pdf').",
+                }
             },
             "required": ["name"],
+        },
+    },
+    {
+        "name": "compact",
+        "description": "Manually trigger conversation history compaction to free context space.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
         },
     },
 ]

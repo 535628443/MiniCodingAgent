@@ -1,5 +1,5 @@
 """
-基础文件操作工具：read_file, write_file, edit_file, glob
+基础文件操作工具: read_file, write_file, edit_file, glob
 """
 import glob as g
 from ..config import WORKDIR

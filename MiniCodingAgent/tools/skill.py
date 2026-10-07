@@ -7,26 +7,6 @@ from ..config import SKILLS_DIR
 from ..state import state
 
 
-def _parse_frontmatter(text: str) -> tuple[dict, str]:
-    """
-    解析 SKILL.md 顶部的 YAML Frontmatter 元数据块。
-    返回元数据字典和正文内容二元组: (meta, body)。
-    """
-    if not text.startswith("---"):
-        return {}, text
-
-    parts = text.split("---", 2)
-    if len(parts) < 3:
-        return {}, text
-
-    try:
-        meta = yaml.safe_load(parts[1]) or {}
-    except yaml.YAMLError:
-        meta = {}
-
-    return meta, parts[2].strip()
-
-
 def scan_skills():
     """
     扫描 skills/ 目录，将技能名称、描述以及完整正文存入 state.skill_registry 缓存。
@@ -70,3 +50,25 @@ def load_skill(name: str) -> str:
     if not skill:
         return f"Skill not found: {name}"
     return skill["content"]
+
+
+# ====================== Helper Methods ============================
+
+def _parse_frontmatter(text: str) -> tuple[dict, str]:
+    """
+    解析 SKILL.md 顶部的 YAML Frontmatter 元数据块。
+    返回元数据字典和正文内容二元组: (meta, body)。
+    """
+    if not text.startswith("---"):
+        return {}, text
+
+    parts = text.split("---", 2)
+    if len(parts) < 3:
+        return {}, text
+
+    try:
+        meta = yaml.safe_load(parts[1]) or {}
+    except yaml.YAMLError:
+        meta = {}
+
+    return meta, parts[2].strip()

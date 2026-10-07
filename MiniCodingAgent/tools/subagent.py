@@ -11,58 +11,86 @@ from .files import run_read, run_write, run_edit, run_glob
 SUB_TOOLS = [
     {
         "name": "bash",
-        "description": "Run a shell command.",
+        "description": "Run non-interactive shell commands (e.g. grep, find, git, pytest, ls, python) in the workspace directory and capture the output.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "command": {"type": "string"}
+                "command": {
+                    "type": "string",
+                    "description": "The shell command line string to execute in the workspace.",
+                }
             },
             "required": ["command"],
         },
     },
     {
         "name": "read_file",
-        "description": "Read file contents.",
+        "description": "Read file contents safely from the workspace. Supports optional line limit to avoid context overflow.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "path": {"type": "string"}
+                "path": {
+                    "type": "string",
+                    "description": "Relative path to the file in the workspace.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Optional maximum number of lines to read from the file.",
+                },
             },
             "required": ["path"],
         },
     },
     {
         "name": "write_file",
-        "description": "Write content to a file.",
+        "description": "Write or overwrite content to a file. Automatically creates any missing parent directories.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"},
+                "path": {
+                    "type": "string",
+                    "description": "Relative path to the destination file.",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "The full text content to write to the file.",
+                },
             },
             "required": ["path", "content"],
         },
     },
     {
         "name": "edit_file",
-        "description": "Replace exact text in a file once.",
+        "description": "Replace an exact substring ('old_text') with 'new_text' in a file once. 'old_text' must match the file content exactly.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "path": {"type": "string"},
-                "old_text": {"type": "string"},
-                "new_text": {"type": "string"},
+                "path": {
+                    "type": "string",
+                    "description": "Relative path to the file to edit.",
+                },
+                "old_text": {
+                    "type": "string",
+                    "description": "The exact substring to be replaced (must match uniquely in the file).",
+                },
+                "new_text": {
+                    "type": "string",
+                    "description": "The replacement substring.",
+                },
             },
             "required": ["path", "old_text", "new_text"],
         },
     },
     {
         "name": "glob",
-        "description": "Find files matching a glob pattern.",
+        "description": "Find file paths in the workspace matching a glob pattern (e.g., '**/*.py', 'MiniCodingAgent/*.py', 'tests/*').",
         "input_schema": {
             "type": "object",
             "properties": {
-                "pattern": {"type": "string"}
+                "pattern": {
+                    "type": "string",
+                    "description": "Glob pattern relative to workspace root.",
+                }
             },
             "required": ["pattern"],
         },
@@ -76,17 +104,6 @@ SUB_HANDLERS = {
     "edit_file": run_edit,
     "glob": run_glob,
 }
-
-
-def extract_text(content) -> str:
-    """从消息块列表中提取纯文本回复内容。"""
-    if not isinstance(content, list):
-        return str(content)
-    return "\n".join(
-        getattr(b, "text", "")
-        for b in content
-        if getattr(b, "type", None) == "text"
-    )
 
 
 def spawn_subagent(description: str) -> str:
@@ -140,11 +157,11 @@ def spawn_subagent(description: str) -> str:
 
         messages.append({"role": "user", "content": results})
 
-    result = extract_text(messages[-1]["content"])
+    result = _extract_text(messages[-1]["content"])
     if not result:
         for msg in reversed(messages):
             if msg["role"] == "assistant":
-                result = extract_text(msg["content"])
+                result = _extract_text(msg["content"])
                 if result:
                     break
 
@@ -153,3 +170,21 @@ def spawn_subagent(description: str) -> str:
 
     print(f"\033[35m[Subagent done]\033[0m")
     return result
+
+
+# ====================== Helper Methods ============================
+
+def _extract_text(content) -> str:
+    """从消息块列表中提取纯文本回复内容。"""
+    if not isinstance(content, list):
+        return str(content)
+    return "\n".join(
+        getattr(b, "text", "")
+        for b in content
+        if getattr(b, "type", None) == "text"
+    )
+
+
+# 兼容旧命名别名
+extract_text = _extract_text
+
